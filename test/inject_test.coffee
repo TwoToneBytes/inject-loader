@@ -12,7 +12,8 @@ moduleFixture = """
 
 describe 'inject-loader', ->
   before ->
-    @context = cacheable: -> return
+    @context =
+      cacheable: -> return
     @fn = inject.bind(@context)
 
   beforeEach ->
@@ -29,6 +30,22 @@ describe 'inject-loader', ->
         src = "require('lib/thing')"
         replacement = "(injections['lib/thing'] || require('lib/thing'))"
         expect(@fn(src)).to.have.string replacement
+
+      describe 'require.context', ->
+        injectedSrc = '';
+
+        beforeEach ->
+          injectedSrc = @fn("""
+                            var req = require.context('./libs/', false, /\.js/);
+                            var Dispatcher = req('dispatcher');
+                            var StaticRequire = require('static');
+                          """)
+
+        it 'should inject dynamic requires', ->
+          expect(injectedSrc).to.have.string "var Dispatcher = (injections['./libs/' + 'dispatcher'] || req('dispatcher'));"
+
+        it 'should not affect static requires', ->
+          expect(injectedSrc).to.have.string "var StaticRequire = (injections['static'] || require('static'));";
 
     describe 'queries', ->
       describe 'empty', ->
@@ -61,7 +78,7 @@ describe 'inject-loader', ->
           expect(injectedSrc).to.have.string "var EventEmitter = (injections['events'] || require('events')).EventEmitter;"
           expect(injectedSrc).to.have.string "var handleAction = require('lib/handle_action');"
 
-      describe 'exculde single specific injection', ->
+      describe 'exclude single specific injection', ->
         describe 'single exclusion flag', ->
           beforeEach ->
             @context.query = '?-lib/dispatcher'
@@ -72,7 +89,7 @@ describe 'inject-loader', ->
             expect(injectedSrc).to.have.string "var EventEmitter = (injections['events'] || require('events')).EventEmitter;"
             expect(injectedSrc).to.have.string "var handleAction = (injections['lib/handle_action'] || require('lib/handle_action'));"
 
-        describe 'exculde multiple specific injections', ->
+        describe 'exclude multiple specific injections', ->
           beforeEach ->
             @context.query = '?-lib/dispatcher&-events'
 
