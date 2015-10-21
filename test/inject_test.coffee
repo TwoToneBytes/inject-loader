@@ -32,20 +32,21 @@ describe 'inject-loader', ->
         expect(@fn(src)).to.have.string replacement
 
       describe 'require.context', ->
-        injectedSrc = '';
+        injectedSrc = ''
 
         beforeEach ->
           injectedSrc = @fn("""
                             var req = require.context('./libs/', false, /\.js/);
                             var Dispatcher = req('dispatcher');
                             var StaticRequire = require('static');
+                            var unintializedVar;
                           """)
 
         it 'should inject dynamic requires', ->
           expect(injectedSrc).to.have.string "var Dispatcher = (injections['./libs/' + 'dispatcher'] || req('dispatcher'));"
 
         it 'should not affect static requires', ->
-          expect(injectedSrc).to.have.string "var StaticRequire = (injections['static'] || require('static'));";
+          expect(injectedSrc).to.have.string "var StaticRequire = (injections['static'] || require('static'));"
 
     describe 'queries', ->
       describe 'empty', ->

@@ -84,7 +84,8 @@ function replaceRequireContextWithInjections(src) {
         var varInitializer = node.init,
             callee = varInitializer && varInitializer.type == 'CallExpression' && varInitializer.callee;
 
-        return !!(callee.type === 'MemberExpression'
+        return !!(callee
+        && callee.type === 'MemberExpression'
         && callee.object.name === 'require'
         && callee.property.name === 'context');
     });
@@ -105,7 +106,6 @@ function replaceRequireContextWithInjections(src) {
         matchingCallExpressionResults.forEach(function (node) {
             var dynamicModuleName = escodegen.generate(node.init.arguments[0]);
 
-            console.log(src.substring(node.init.range[0], node.init.range[1]));
             src = replaceIn(node.init.range[0], node.init.range[1], '(injections[' + basePath + ' + ' + dynamicModuleName + '] || ' + escodegen.generate(node.init) + ')');
         });
     });
