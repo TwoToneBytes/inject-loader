@@ -40,6 +40,8 @@ describe 'inject-loader', ->
                             var Dispatcher = req('dispatcher');
                             var StaticRequire = require('static');
                             var unintializedVar;
+                            var lateInitializedModule;
+                            lateInitializedModule = req('latebound');
                           """)
 
         it 'should inject dynamic requires', ->
@@ -47,6 +49,9 @@ describe 'inject-loader', ->
 
         it 'should not affect static requires', ->
           expect(injectedSrc).to.have.string "var StaticRequire = (injections['static'] || require('static'));"
+
+        it 'should handle initializing of modules outside of variable declarations', ->
+          expect(injectedSrc).to.have.string "lateInitializedModule = (injections['./libs/' + 'latebound'] || req('latebound'));"
 
     describe 'queries', ->
       describe 'empty', ->

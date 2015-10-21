@@ -99,14 +99,12 @@ function replaceRequireContextWithInjections(src) {
         // var req = require.context(); // req is our varExpression
         // var module1 = req('module-name.js');
         // var module2 = req('module2-name.js'); // module1 and module2 make-up the matchingCallExpressionResults
-        var matchingCallExpressionResults = allVariables.nodes.filter(function (n) {
-            return n.init && n.init.type === 'CallExpression' && n.init.callee && n.init.callee.name === varExpression.id.name;
-        });
+        var matchingCallExpressionResults = queryableAst.callExpression(varExpression.id.name).nodes;
 
         matchingCallExpressionResults.forEach(function (node) {
-            var dynamicModuleName = escodegen.generate(node.init.arguments[0]);
+            var dynamicModuleName = escodegen.generate(node.arguments[0]);
 
-            src = replaceIn(node.init.range[0], node.init.range[1], '(injections[' + basePath + ' + ' + dynamicModuleName + '] || ' + escodegen.generate(node.init) + ')');
+            src = replaceIn(node.range[0], node.range[1], '(injections[' + basePath + ' + ' + dynamicModuleName + '] || ' + escodegen.generate(node) + ')');
         });
     });
 
